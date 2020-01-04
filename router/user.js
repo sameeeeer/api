@@ -4,19 +4,48 @@ const router = new express.Router()
 const auth = require('../middleware/auth');
 
 
-router.post("/upload",(req,res)=>{
-    //console.log(req.body)
-   var myData = new User(req.body);
-   myData.save();
-});
+router.post('/register', (req, response) => { // /registraion url path (req)-> api ma aaeko req | (response)-> action
+    console.log(req.body); // shows the parameters that the user sends from body 
+    var mydata = new User(req.body); //sends the req from client to our model user
+    mydata.save().then(function() { //mydata.save initialies the data sending process though the model
+        response.send(mydata); //client gets the response
+
+    }).catch(function(e) { //if data is not saved catch triggers the reason why
+        response.send(e);
+    })
+})
 
 router.post("/login", async function(req, res){
 
-    const user = await User.checkCrediantialsDb(req.body.username,
+    const user = await User.checkCrediantialsDb(req.body.email,
    req.body.password)
-    const token = await user.generateAuthToken()
+    const token = await  user.generateAuthToken()
+    res.json({
+        success:true,
+        user:user
+    });
+    console.log("success")
    
    })
+   
+
+//   router.post('/login', async function(req, response) {
+//     console.log(req.body);
+//     var email = req.body.email;
+//     var password = req.body.password;
+
+//     User.findOne({ 'email': email, 'password': password }).count(function(err, number) {
+//         if (number != 0) {
+//             response.statusCode = 200;
+//             response.setHeader('Content-Type', 'application/json') //what format the response is being sent in
+//             response.json('Successfully Logged in');
+            
+//         } else {
+//             res.send('email and password did not match');
+//             console.log('email and password did not match')
+//         }
+//     })
+// })
 //get ko lagi code
 router.get('/urs',auth,function(req,res){
     User.find().then(function(user_data){
@@ -49,5 +78,25 @@ router.put('/updates/:id',function(req,res){
     })
 })
 
+router.get('/test_student',auth,function(req,res){
+user_type = req.user_type
+//console.log(user_type)
+    if(user_type=="student"){
+        res.send("Welcome student")
+    }
+    else{
+    res.status(401).send({ error: 'Please authenticate.' })
+    }
+    
+    })
+    router.get("/admin_dashboard" , auth, function(req, res){
+        user_type = req.user_type
+        if(user_type=="admin"){
+            res.send("hello admin")
+        }
+        else{
+            res.send("please authenticate..");
+        }
+    })
 
 module.exports = router
